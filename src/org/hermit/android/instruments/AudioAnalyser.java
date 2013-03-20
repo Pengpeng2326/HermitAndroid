@@ -371,6 +371,7 @@ public class AudioAnalyser
                 currentPower = SignalPower.calculatePowerDb(buffer, 0, len);
 
             // If we have a spectrum or sonagram analyser, set up the FFT input data.
+            // take the newest inputBlockSize data
             if (spectrumGauge != null || sonagramGauge != null)
                 spectrumAnalyser.setInput(buffer, len - inputBlockSize, inputBlockSize);
 
@@ -379,6 +380,7 @@ public class AudioAnalyser
         }
 
         // If we have a spectrum or sonagram analyser, perform the FFT.
+        // since power can be calculated based on time domain samples as well
         if (spectrumGauge != null || sonagramGauge != null) {
             // Do the (expensive) transformation.
             // The transformer has its own state, no need to lock here.
@@ -405,8 +407,12 @@ public class AudioAnalyser
             sonagramGauge.update(spectrumData);
 
         // If we have a power gauge, display the signal power.
-        if (powerGauge != null)
+        if (powerGauge != null) {
+        	
             powerGauge.update(currentPower);
+            if (spectrumGauge != null)
+            	powerGauge.meterPeakMax = spectrumGauge.peakSpec;
+        }
     }
     
 

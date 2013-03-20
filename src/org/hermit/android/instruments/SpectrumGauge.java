@@ -222,13 +222,18 @@ public class SpectrumGauge
             if (logFreqScale)
                 logGraph(data, canvas, paint);
             else
+            {
                 linearGraph(data, canvas, paint);
+                // ryan added: find the peak of spectrum
+                specPeakSearch(data);
+                
+            }
         }
     }
 
 	   
     /**
-     * Draw a linear spectrum graph.
+     * Draw a log spectrum graph.
      * 
      * @param   data        An array of floats defining the signal power
      *                      at each frequency in the spectrum.
@@ -323,6 +328,57 @@ public class SpectrumGauge
         }
 	}
 	
+	
+	/**
+	 * find the peak from the spectrum.
+	 * 
+     * @param   data        An array of floats defining the signal power
+     *                      at each frequency in the spectrum.
+	 * @param  peakSpec       Peak spectrum.
+	 * @param  peakPower      Peak power.
+	 */
+	private void specPeakSearch(float[] data) {
+        
+        final int len = data.length;
+
+        // window averaged psd data 
+        double z = 0;
+        // index of peak spec
+        int peakSpecIndex = 0;
+
+        // init maxSpec and maxSpecPower
+        double maxSpecPower = -100000.0f;
+        
+        //threshold used to detect a peak in spectrum in dB
+        //final float  specPeakDetThredDb= 3;
+        
+        int specWinWidth = (int)(Math.floor(specWinWidthHz / nyquistFreq) * len);
+        
+        if (2*specWinWidth+1 > len - 1)
+        	specWinWidth = (int)Math.floor((len-1)/2) - 1;
+        	
+        // Element 0 isn't a frequency bucket; skip it.
+        for (int j = 1; j <= 2*specWinWidth+1; j++) {
+            //init z: half of the window size
+            z += (double) (Math.log10(data[j]));
+        } 
+        
+        // Element 0 isn't a frequency bucket; skip it.
+        for (int i = 1+specWinWidth; i < (len-specWinWidth-1); ++i) {     
+        	z -= (double)(Math.log10(data[i - specWinWidth]));
+        	z += (double)(Math.log10(data[i + specWinWidth + 1]));
+            if (z > maxSpecPower) {
+            	maxSpecPower = z;
+            	peakSpecIndex = i;
+            }
+
+        }
+        
+        peakSpec =  ((float)peakSpecIndex / len) * nyquistFreq; 
+        //for debug
+        //peakSpec = 10;
+	}
+	
 
 	// ******************************************************************** //
 	// View Drawing.
@@ -373,6 +429,8 @@ public class SpectrumGauge
 
     // If true, draw a logarithmic frequency scale.  Otherwise linear.
     private static final boolean logFreqScale = false;
+    // half of window width of spec peak search in Hz
+    private static final float specWinWidthHz = 100;
 
 	// Display position and size within the parent view.
     private int dispX = 0;
@@ -392,6 +450,9 @@ public class SpectrumGauge
     private float spectGraphHeight = 0;
     private float spectLabY = 0;
     private float spectGraphMargin = 0;
+    // spectrum at peak psd: public, to be changed to private
+    public float peakSpec = 0;
+
 
     // Bitmap in which we draw the gauge background,
     // and the Canvas and Paint for drawing into it.

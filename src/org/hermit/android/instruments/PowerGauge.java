@@ -63,7 +63,8 @@ public class PowerGauge
         
         // Create the buffers where the text labels are formatted.
         dbBuffer = "-100.0dB".toCharArray();
-        pkBuffer = "-100.0dB peak".toCharArray();
+        //pkBuffer = "-100.0dB peak".toCharArray();
+        pkBuffer = "-100000.0HZ at peak".toCharArray();
 	}
 
 
@@ -342,7 +343,7 @@ public class PowerGauge
 	        
             final float px = dispX + meterSubTextX;
             final float py = dispY + meterSubTextY;
-            CharFormatter.formatFloat(pkBuffer, 0, meterPeakMax, 6, 1);
+            CharFormatter.formatFloat(pkBuffer, 0, meterPeakMax, 9, 1);
             paint.setTextSize(meterSubTextSize);
             canvas.drawText(pkBuffer, 0, pkBuffer.length, px, py, paint);
 	    }
@@ -390,10 +391,10 @@ public class PowerGauge
         }
         
         // Find the highest peak value.
-        meterPeakMax = -100f;
-        for (int i = 0; i < METER_PEAKS; ++i)
-            if (meterPeakTimes[i] != 0 && meterPeaks[i] > meterPeakMax)
-                meterPeakMax = meterPeaks[i];
+//        meterPeakMax = -100f;
+//        for (int i = 0; i < METER_PEAKS; ++i)
+//            if (meterPeakTimes[i] != 0 && meterPeaks[i] > meterPeakMax)
+//                meterPeakMax = meterPeaks[i];
     }
     
 
@@ -468,7 +469,7 @@ public class PowerGauge
     // time indicates a peak not set.
     private float[] meterPeaks = null;
     private long[] meterPeakTimes = null;
-    private float meterPeakMax = 0f;
+    public float meterPeakMax = 0f;
 
     // Buffer for displayed average and peak dB value texts.
     private char[] dbBuffer = null;
